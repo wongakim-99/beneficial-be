@@ -17,6 +17,8 @@ from app.domains.developer.controller.admin_router import router as system_route
 from app.domains.auth.controller.auth_router import router as auth_router
 from app.domains.auth.controller.admin_auth_router import router as admin_auth_router
 from app.domains.agent.controller.agent_router import router as agent_router
+from app.domains.messaging.controller.teacher_message_router import router as teacher_message_router
+from app.domains.messaging.controller.student_message_router import router as student_message_router
 from app.common.init.initialization import get_initialization_service
 from app.common.logging.logging_config import get_logger
 
@@ -198,6 +200,8 @@ app.include_router(student_class_router)
 app.include_router(teacher_instruction_router)
 app.include_router(student_assignment_router)
 app.include_router(student_stage3_orchestration_router)
+app.include_router(teacher_message_router)
+app.include_router(student_message_router)
 app.include_router(system_router)
 
 

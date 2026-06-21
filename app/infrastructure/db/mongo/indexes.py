@@ -51,6 +51,16 @@ MONGO_INDEXES = [
         "keys": [("user_id", 1), ("created_at", -1)],
         "name": "idx_agent_call_logs_user_created_at",
     },
+    {
+        "collection": "teacher_messages",
+        "keys": [("student_id", 1), ("created_at", -1)],
+        "name": "idx_teacher_messages_student_created_at",
+    },
+    {
+        "collection": "teacher_messages",
+        "keys": [("teacher_id", 1), ("student_id", 1), ("created_at", -1)],
+        "name": "idx_teacher_messages_teacher_student_created_at",
+    },
 ]
 
 
