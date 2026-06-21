@@ -11,7 +11,7 @@ from app.common.security import (
     utc_now,
     verify_password,
 )
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.auth.repository.auth_repository import AuthRepository
 from app.domains.auth.whitelist import is_developer_email, is_teacher_email
 

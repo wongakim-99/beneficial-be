@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.common.logging.logging_config import get_logger
 from app.domains.auth.dependency.auth_dependencies import get_current_user
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.content.stage1.schemas import (
     Stage1CardsResponse,
     Stage1SubmitRequest,

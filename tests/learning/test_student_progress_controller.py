@@ -3,7 +3,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.domains.agent.controller.agent_router import get_my_agent_profile
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.progress.controller.student_progress_router import get_my_progress
 
 

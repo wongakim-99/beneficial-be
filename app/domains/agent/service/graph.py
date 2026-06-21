@@ -17,7 +17,7 @@ from typing_extensions import TypedDict
 from langgraph.graph import END, StateGraph
 
 from app.common.security import utc_now
-from app.domains.agent.models import ChatMessage
+from app.domains.agent.model.agent_models import ChatMessage
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-from app.domains.instruction.models import GeneratedProblem
+from app.domains.instruction.model.instruction_models import GeneratedProblem
 from app.domains.progress.util import CONCEPT_KEY_BY_ANSWER
 
 

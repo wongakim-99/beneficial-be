@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, Optional
 
 from app.common.security import utc_now
-from app.domains.progress.models import (
+from app.domains.progress.model.progress_models import (
     LearningRecord,
     StudentWeaknessProfile,
     WeakConcept,

@@ -2,9 +2,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.domains.auth.models import User
-from app.domains.classroom.models import Classroom
-from app.domains.instruction.models import GeneratedProblem
+from app.domains.auth.model.auth_models import User
+from app.domains.classroom.model.classroom_models import Classroom
+from app.domains.instruction.model.instruction_models import GeneratedProblem
 from app.domains.instruction.service.instruction_service import (
     AssignmentAccessError,
     InstructionService,

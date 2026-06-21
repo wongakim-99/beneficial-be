@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.domains.auth.dependency.auth_dependencies import get_current_teacher
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.instruction.dependency.instruction_dependencies import get_instruction_service, get_problem_generator
 from app.domains.instruction.service.generation import OpenAIProblemGenerator
-from app.domains.instruction.models import GeneratedProblem
+from app.domains.instruction.model.instruction_models import GeneratedProblem
 from app.domains.instruction.schema.instruction_schemas import (
     AssignmentListResponse,
     AssignmentResponse,

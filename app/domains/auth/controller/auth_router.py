@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 
 from app.domains.auth.dependency.auth_dependencies import get_auth_service, get_current_user
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.auth.schema.auth_schemas import (
     AuthTokenResponse,
     LoginRequest,

@@ -3,13 +3,13 @@ from datetime import datetime, timezone
 import pytest
 from fastapi import HTTPException
 
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.instruction.controller.teacher_router import (
     assign_assignment,
     create_assignment_draft,
     generate_problems,
 )
-from app.domains.instruction.models import GeneratedProblem
+from app.domains.instruction.model.instruction_models import GeneratedProblem
 from app.domains.instruction.schema.instruction_schemas import (
     CreateAssignmentDraftRequest,
     GeneratedProblemRequest,

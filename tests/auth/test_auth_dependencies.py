@@ -8,7 +8,7 @@ from app.domains.auth.dependency.auth_dependencies import (
     get_current_student,
     get_current_teacher,
 )
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 
 
 def _user(role: str) -> User:

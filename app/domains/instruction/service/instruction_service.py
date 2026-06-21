@@ -3,9 +3,9 @@ from typing import Protocol
 from pydantic import BaseModel, Field
 
 from app.common.security import utc_now
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.classroom.service.classroom_service import ClassroomService
-from app.domains.instruction.models import (
+from app.domains.instruction.model.instruction_models import (
     AssignmentStatus,
     GeneratedProblem,
     TeacherAssignment,

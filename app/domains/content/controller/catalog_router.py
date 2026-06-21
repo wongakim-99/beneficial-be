@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.domains.auth.dependency.auth_dependencies import get_current_user
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.content.schema.catalog_schemas import (
     ContentUnitsResponse,
     LessonDetailResponse,

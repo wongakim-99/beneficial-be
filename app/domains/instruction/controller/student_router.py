@@ -7,7 +7,7 @@ stage3_router : /student/learning/stage3       — 다음 문제 조회 / 답안
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.domains.auth.dependency.auth_dependencies import get_current_student
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.content.stage3.schemas import Stage3AnswerRequest, Stage3AnswerResponse
 from app.domains.content.stage3.service import DEFAULT_STAGE3_LESSON_ID, get_stage3_service
 from app.domains.instruction.dependency.instruction_dependencies import get_instruction_service

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.domains.auth.dependency.auth_dependencies import get_current_student
 from app.domains.auth.dependency.auth_dependencies import get_current_user
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.content.dependency.catalog_dependencies import get_content_catalog_service
 from app.domains.content.service.catalog_service import ContentCatalogService
 from app.domains.progress.dependency.learning_record_dependencies import get_learning_record_service

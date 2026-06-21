@@ -1,8 +1,8 @@
 import pytest
 from datetime import datetime, timezone
 
-from app.domains.auth.models import User
-from app.domains.content.models import Lesson, Unit
+from app.domains.auth.model.auth_models import User
+from app.domains.content.model.content_models import Lesson, Unit
 from app.domains.content.controller.catalog_router import get_content_lesson, get_content_units
 
 

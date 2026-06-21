@@ -1,4 +1,4 @@
-from app.domains.content.models import Lesson, Unit
+from app.domains.content.model.content_models import Lesson, Unit
 from app.domains.content.repository.catalog_repository import ContentCatalogRepository
 
 

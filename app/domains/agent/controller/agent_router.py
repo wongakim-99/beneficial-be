@@ -17,7 +17,7 @@ from app.domains.agent.service.agent_service import (
     get_chat_service,
 )
 from app.domains.auth.dependency.auth_dependencies import get_current_user
-from app.domains.auth.models import User
+from app.domains.auth.model.auth_models import User
 from app.domains.progress.dependency.learning_record_dependencies import get_learning_record_service
 from app.domains.progress.service.learning_record_service import LearningRecordService
 from app.infrastructure.rag.retriever import RagRetriever
