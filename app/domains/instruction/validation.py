@@ -1,5 +1,5 @@
 from app.domains.instruction.models import GeneratedProblem
-from app.domains.progress.util.util import CONCEPT_KEY_BY_ANSWER
+from app.domains.progress.util import CONCEPT_KEY_BY_ANSWER
 
 
 def validate_generated_problem(

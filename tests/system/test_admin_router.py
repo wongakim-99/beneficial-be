@@ -1,4 +1,4 @@
-from app.domains.developer.admin_router import router
+from app.domains.developer.controller.admin_router import router
 from app.domains.auth.dependency.auth_dependencies import get_current_developer
 
 

@@ -6,7 +6,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.common.init.initialization import get_initialization_service
-from app.domains.developer.indexing_service import get_indexing_service
+from app.domains.developer.service.indexing_service import get_indexing_service
 from app.domains.auth.dependency.auth_dependencies import get_current_developer
 
 router = APIRouter(

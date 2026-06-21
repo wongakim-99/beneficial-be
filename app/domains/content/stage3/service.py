@@ -8,7 +8,7 @@ from app.domains.content.stage3.schemas import (
     Stage3ProgressResponse,
 )
 from app.domains.progress.service.learning_record_service import LearningRecordService
-from app.domains.progress.util.util import infer_lesson_id
+from app.domains.progress.util import infer_lesson_id
 from app.infrastructure.db.mongo.mongo_client import MongoClient, get_mongo_client
 
 logger = logging.getLogger(__name__)

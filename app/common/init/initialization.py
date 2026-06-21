@@ -20,7 +20,7 @@ from app.infrastructure.loaders.seed_mongo_loader import seed_mongo_data
 from app.infrastructure.loaders.stage1_cards_loader import load_stage1_cards
 from app.infrastructure.loaders.stage2_problems_loader import load_stage2_problems
 from app.infrastructure.loaders.stage3_problems_loader import load_stage3_problems
-from app.domains.developer.indexing_service import get_indexing_service
+from app.domains.developer.service.indexing_service import get_indexing_service
 from app.infrastructure.db.mongo.indexes import ensure_mongo_indexes
 from app.infrastructure.db.mongo.mongo_client import get_mongo_client
 from app.infrastructure.db.vector.vector_db import initialize_vector_db

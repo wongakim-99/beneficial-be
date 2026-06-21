@@ -11,7 +11,7 @@ from app.domains.instruction.models import (
     TeacherAssignment,
 )
 from app.domains.instruction.repository.assignment_repository import StageProblemLookup, TeacherAssignmentRepository
-from app.domains.instruction.validation.validation import (
+from app.domains.instruction.validation import (
     allowed_concept_keys,
     normalize_sentence,
     validate_generated_problem,

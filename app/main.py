@@ -12,7 +12,7 @@ from app.domains.content.stage1.router import router as student_stage1_router
 from app.domains.content.stage2.router import router as student_stage2_router
 from app.domains.content.stage3.router import router as student_stage3_router
 from app.domains.progress.controller.student_progress_router import router as student_progress_router
-from app.domains.developer.admin_router import router as system_router
+from app.domains.developer.controller.admin_router import router as system_router
 from app.domains.auth.controller.auth_router import router as auth_router
 from app.domains.auth.controller.admin_auth_router import router as admin_auth_router
 from app.domains.agent.controller.agent_router import router as agent_router
