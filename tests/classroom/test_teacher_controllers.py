@@ -5,7 +5,11 @@ import pytest
 from fastapi import HTTPException
 
 from app.domains.auth.model.auth_models import User
-from app.domains.classroom.controller.teacher_class_router import list_class_students, list_my_classes
+from app.domains.classroom.controller.teacher_class_router import (
+    get_class_summary,
+    list_class_students,
+    list_my_classes,
+)
 from app.domains.progress.controller.teacher_student_router import get_student_records
 
 
@@ -65,6 +69,23 @@ class FakeLearningRecordService:
             priority=0.8,
         )
         return SimpleNamespace(user_id=user_id, weak_concepts=[weak_concept])
+
+    def get_class_weakness_summary(self, user_ids):
+        return {
+            "student_count": len(user_ids),
+            "active_student_count": len(user_ids),
+            "participation_rate": 100 if user_ids else 0,
+            "total_solved_count": 4,
+            "total_wrong_count": 3,
+            "weak_concepts": [
+                {
+                    "concept_key": "되/돼",
+                    "wrong_count": 3,
+                    "student_count": len(user_ids),
+                    "last_wrong_at": datetime.now(timezone.utc),
+                }
+            ],
+        }
 
     def get_records(self, user_id):
         now = datetime.now(timezone.utc)
@@ -137,6 +158,34 @@ def test_teacher_class_students_endpoint_includes_weak_summary():
     assert response.total_count == 1
     assert response.students[0].weak_concepts == ["되/돼"]
     assert response.students[0].recent_activity_at is not None
+
+
+def test_teacher_class_summary_endpoint_aggregates_weak_concepts():
+    response = get_class_summary(
+        class_id="class_1",
+        current_user=_user(),
+        classroom_service=FakeClassroomService(),
+        learning_record_service=FakeLearningRecordService(),
+    )
+
+    assert response.class_id == "class_1"
+    assert response.student_count == 1
+    assert response.participation_rate == 100
+    assert response.total_wrong_count == 3
+    assert response.weak_concepts[0].concept_key == "되/돼"
+    assert response.weak_concepts[0].student_count == 1
+
+
+def test_teacher_class_summary_endpoint_blocks_unknown_class():
+    with pytest.raises(HTTPException) as exc_info:
+        get_class_summary(
+            class_id="class_unknown",
+            current_user=_user(),
+            classroom_service=FakeClassroomService(),
+            learning_record_service=FakeLearningRecordService(),
+        )
+
+    assert exc_info.value.status_code == 404
 
 
 def test_teacher_records_endpoint_filters_by_stage():

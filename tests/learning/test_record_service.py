@@ -149,6 +149,52 @@ def test_weakness_profile_groups_wrong_answers_by_concept():
     assert profile.weak_concepts[0].wrong_count == 2
 
 
+def test_class_weakness_summary_aggregates_across_students():
+    repository = FakeLearningRecordRepository()
+    service = LearningRecordService(repository)
+    now = datetime.now(timezone.utc)
+    repository.records.extend(
+        [
+            # student_a: 되/돼 오답 2건
+            {"user_id": "student_a", "concept_key": "되/돼", "is_correct": False, "created_at": now - timedelta(days=1)},
+            {"user_id": "student_a", "concept_key": "되/돼", "is_correct": False, "created_at": now},
+            # student_b: 되/돼 오답 1건 + 맞추다/맞히다 오답 1건 + 정답 1건
+            {"user_id": "student_b", "concept_key": "되/돼", "is_correct": False, "created_at": now},
+            {"user_id": "student_b", "concept_key": "맞추다/맞히다", "is_correct": False, "created_at": now},
+            {"user_id": "student_b", "concept_key": "되/돼", "is_correct": True, "created_at": now},
+        ]
+    )
+
+    # student_c는 기록이 없어 비활동 학생
+    summary = service.get_class_weakness_summary(["student_a", "student_b", "student_c"])
+
+    assert summary["student_count"] == 3
+    assert summary["active_student_count"] == 2
+    assert summary["participation_rate"] == 67  # round(2/3*100)
+    assert summary["total_solved_count"] == 5
+    assert summary["total_wrong_count"] == 4  # student_a 2 + student_b 2
+
+    # 오답 합계 내림차순 정렬
+    weak = summary["weak_concepts"]
+    assert weak[0]["concept_key"] == "되/돼"
+    assert weak[0]["wrong_count"] == 3  # student_a 2 + student_b 1
+    assert weak[0]["student_count"] == 2  # 두 학생 모두 틀림
+    assert weak[1]["concept_key"] == "맞추다/맞히다"
+    assert weak[1]["wrong_count"] == 1
+    assert weak[1]["student_count"] == 1
+
+
+def test_class_weakness_summary_handles_empty_class():
+    service = LearningRecordService(FakeLearningRecordRepository())
+
+    summary = service.get_class_weakness_summary([])
+
+    assert summary["student_count"] == 0
+    assert summary["active_student_count"] == 0
+    assert summary["participation_rate"] == 0
+    assert summary["weak_concepts"] == []
+
+
 def test_get_records_returns_user_records_as_models():
     repository = FakeLearningRecordRepository()
     service = LearningRecordService(repository)

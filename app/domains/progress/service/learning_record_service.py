@@ -115,6 +115,68 @@ class LearningRecordService:
         weak_concepts.sort(key=lambda item: item.priority, reverse=True)
         return StudentWeaknessProfile(user_id=user_id, weak_concepts=weak_concepts)
 
+    def get_class_weakness_summary(self, user_ids: list[str]) -> dict:
+        """반 소속 학생들의 학습 기록을 합쳐 공통 약점과 참여 지표를 만든다.
+
+        - wrong_count: 개념별 반 전체 오답 합계
+        - student_count: 개념별로 한 번 이상 틀린 학생 수
+        - 참여 지표: 활동 학생 수, 전체 풀이/오답 수
+        """
+        wrong_count_by_concept: Dict[str, int] = defaultdict(int)
+        student_count_by_concept: Dict[str, int] = defaultdict(int)
+        last_wrong_at_by_concept: Dict[str, datetime] = {}
+        active_student_count = 0
+        total_solved_count = 0
+        total_wrong_count = 0
+
+        for user_id in user_ids:
+            records = self.repository.find_records_by_user(user_id)
+            if records:
+                active_student_count += 1
+            concepts_wrong_by_student: set[str] = set()
+            for record in records:
+                total_solved_count += 1
+                if record.get("is_correct"):
+                    continue
+                concept_key = record.get("concept_key")
+                if not concept_key:
+                    continue
+                total_wrong_count += 1
+                wrong_count_by_concept[concept_key] += 1
+                if concept_key not in concepts_wrong_by_student:
+                    student_count_by_concept[concept_key] += 1
+                    concepts_wrong_by_student.add(concept_key)
+                created_at = record.get("created_at")
+                if isinstance(created_at, datetime):
+                    last_wrong_at_by_concept[concept_key] = max(
+                        created_at,
+                        last_wrong_at_by_concept.get(concept_key, created_at),
+                    )
+
+        weak_concepts = [
+            {
+                "concept_key": concept_key,
+                "wrong_count": wrong_count,
+                "student_count": student_count_by_concept[concept_key],
+                "last_wrong_at": last_wrong_at_by_concept.get(concept_key),
+            }
+            for concept_key, wrong_count in wrong_count_by_concept.items()
+        ]
+        weak_concepts.sort(key=lambda item: item["wrong_count"], reverse=True)
+
+        total_students = len(user_ids)
+        participation_rate = (
+            round(active_student_count / total_students * 100) if total_students else 0
+        )
+        return {
+            "student_count": total_students,
+            "active_student_count": active_student_count,
+            "participation_rate": participation_rate,
+            "total_solved_count": total_solved_count,
+            "total_wrong_count": total_wrong_count,
+            "weak_concepts": weak_concepts,
+        }
+
     def get_records(self, user_id: str) -> list[LearningRecord]:
         return [
             LearningRecord(**record)

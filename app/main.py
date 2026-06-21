@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,7 +43,45 @@ def get_cors_origins() -> list[str]:
     ]
     return origins or DEFAULT_CORS_ORIGINS
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    애플리케이션 수명주기 핸들러.
+
+    시작 시:
+    - 기본: lightweight (연결 확인 + BM25 인메모리 인덱스만).
+    - AUTO_INIT_ON_STARTUP=1 일 때 시드 데이터/벡터 인덱싱/가상 질문 생성까지 수행.
+    - 무거운 작업은 평소엔 `/admin/*` 엔드포인트로 호출.
+
+    종료 시:
+    - 정리 로그만 남긴다.
+    """
+    try:
+        init_service = get_initialization_service()
+        auto_full = os.getenv("AUTO_INIT_ON_STARTUP", "0") == "1"
+
+        if auto_full:
+            logger.info("[START] AUTO_INIT_ON_STARTUP=1 - full initialization 실행")
+            result = await init_service.full_initialization()
+        else:
+            result = await init_service.startup_lightweight()
+
+        if result.get("status") == "success":
+            logger.info(f"[DONE] 애플리케이션 시작 완료 (mode={result.get('mode')})")
+        else:
+            logger.warning(f"[WARN] 초기화 경고: {result.get('message')}")
+
+    except Exception as e:
+        logger.error(f"[ERROR] 애플리케이션 시작 실패: {e}")
+
+    yield
+
+    logger.info("[STOP] Beneficial RAG System 종료 중...")
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="🎓 CCT 백엔드 API",
     version="1.0.0",
     description="""
@@ -143,40 +182,6 @@ app.add_middleware(
     allow_methods=["*"],  # 모든 HTTP 메서드 허용
     allow_headers=["*"],  # 모든 헤더 허용
 )
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    애플리케이션 시작 시 실행될 이벤트.
-
-    기본: lightweight (연결 확인 + BM25 인메모리 인덱스만).
-    AUTO_INIT_ON_STARTUP=1 일 때 시드 데이터/벡터 인덱싱/가상 질문 생성까지 수행.
-    무거운 작업은 평소엔 `/admin/*` 엔드포인트로 호출.
-    """
-    try:
-        init_service = get_initialization_service()
-        auto_full = os.getenv("AUTO_INIT_ON_STARTUP", "0") == "1"
-
-        if auto_full:
-            logger.info("[START] AUTO_INIT_ON_STARTUP=1 - full initialization 실행")
-            result = await init_service.full_initialization()
-        else:
-            result = await init_service.startup_lightweight()
-
-        if result.get("status") == "success":
-            logger.info(f"[DONE] 애플리케이션 시작 완료 (mode={result.get('mode')})")
-        else:
-            logger.warning(f"[WARN] 초기화 경고: {result.get('message')}")
-
-    except Exception as e:
-        logger.error(f"[ERROR] 애플리케이션 시작 실패: {e}")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """애플리케이션 종료 시 실행될 이벤트"""
-    logger.info("[STOP] Beneficial RAG System 종료 중...")
-
 
 # 라우터 등록
 app.include_router(auth_router)

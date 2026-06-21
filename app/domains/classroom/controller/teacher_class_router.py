@@ -18,10 +18,12 @@ from app.domains.progress.dependency.learning_record_dependencies import get_lea
 from app.domains.progress.service.learning_record_service import LearningRecordService
 from app.domains.classroom.schema.classroom_schemas import (
     AddStudentRequest,
+    ClassWeakConceptSummary,
     CreateClassRequest,
     TeacherClassesResponse,
     TeacherClassResponse,
     TeacherClassStudentsResponse,
+    TeacherClassSummaryResponse,
     TeacherStudentSummaryResponse,
     UserSearchResponse,
     UserSearchResult,
@@ -90,6 +92,37 @@ def list_class_students(
         class_id=class_id,
         students=items,
         total_count=len(items),
+    )
+
+
+@router.get("/{class_id}/summary", response_model=TeacherClassSummaryResponse)
+def get_class_summary(
+    class_id: str,
+    current_user: User = Depends(get_current_teacher),
+    classroom_service: ClassroomService = Depends(get_classroom_service),
+    learning_record_service: LearningRecordService = Depends(get_learning_record_service),
+) -> TeacherClassSummaryResponse:
+    """반 전체의 공통 약점과 참여 지표를 집계해 조회한다."""
+    classroom = classroom_service.get_class_for_user(class_id, current_user)
+    if not classroom:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="반을 찾을 수 없습니다.",
+        )
+
+    summary = learning_record_service.get_class_weakness_summary(classroom.student_ids)
+    return TeacherClassSummaryResponse(
+        class_id=class_id,
+        name=classroom.name,
+        student_count=summary["student_count"],
+        active_student_count=summary["active_student_count"],
+        participation_rate=summary["participation_rate"],
+        total_solved_count=summary["total_solved_count"],
+        total_wrong_count=summary["total_wrong_count"],
+        weak_concepts=[
+            ClassWeakConceptSummary(**weak_concept)
+            for weak_concept in summary["weak_concepts"]
+        ],
     )
 
 
