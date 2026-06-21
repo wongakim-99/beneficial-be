@@ -3,10 +3,19 @@
 
 평소 startup은 lightweight 이므로, 시드/인덱싱/가상 질문 생성은 여기서 호출한다.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.common.init.initialization import get_initialization_service
 from app.domains.developer.service.indexing_service import get_indexing_service
+from app.domains.developer.dependency.monitoring_dependencies import get_monitoring_service
+from app.domains.developer.service.monitoring_service import MonitoringService
+from app.domains.developer.schema.monitoring_schemas import (
+    TraceLog,
+    TracesResponse,
+    UsageStatsResponse,
+)
 from app.domains.auth.dependency.auth_dependencies import get_current_developer
 
 router = APIRouter(
@@ -109,6 +118,38 @@ async def reindex_pdf():
         return await get_indexing_service().index_pdf_documents()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PDF 재인덱싱 실패: {str(e)}")
+
+
+# ----------------------------------------------------------------------
+# 사용량 모니터링
+# ----------------------------------------------------------------------
+
+@router.get("/usage/stats", response_model=UsageStatsResponse)
+async def get_usage_stats(
+    days: int = Query(7, ge=1, le=90, description="집계 기간(일)"),
+    monitoring_service: MonitoringService = Depends(get_monitoring_service),
+):
+    """최근 N일 에이전트/채팅 호출 사용량 통계를 조회합니다."""
+    return UsageStatsResponse(**monitoring_service.get_usage_stats(days))
+
+
+@router.get("/usage/traces", response_model=TracesResponse)
+async def get_usage_traces(
+    endpoint: Optional[str] = Query(None, description="엔드포인트 필터 (agent_chat, chat_rag)"),
+    user_id: Optional[str] = Query(None, description="사용자 필터"),
+    limit: int = Query(50, ge=1, le=200, description="최대 조회 수"),
+    monitoring_service: MonitoringService = Depends(get_monitoring_service),
+):
+    """최근 호출 트레이스 로그를 시간 역순으로 조회합니다."""
+    traces = monitoring_service.get_recent_traces(
+        endpoint=endpoint,
+        user_id=user_id,
+        limit=limit,
+    )
+    return TracesResponse(
+        traces=[TraceLog(**trace) for trace in traces],
+        total_count=len(traces),
+    )
 
 
 @router.get("/indexing/status")

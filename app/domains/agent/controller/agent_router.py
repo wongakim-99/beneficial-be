@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.domains.agent.repository.chat_session_repository import ChatSessionRepository
@@ -24,6 +26,11 @@ from app.infrastructure.rag.retriever import RagRetriever
 from app.infrastructure.rag.service import RagService
 from app.infrastructure.db.mongo.mongo_client import get_mongo_client
 from app.infrastructure.external.openai_client import get_openai_client
+from app.infrastructure.monitoring.call_log_repository import (
+    AgentCallLogRepository,
+    get_call_log_repository,
+    record_agent_call,
+)
 
 router = APIRouter(tags=["agent"])
 agent_router = APIRouter(prefix="/agent", tags=["agent"])
@@ -52,13 +59,31 @@ async def agent_chat(
     body: AgentChatRequest,
     current_user: User = Depends(get_current_user),
     agent_service: AgentService = Depends(get_agent_service),
+    call_log_repository: AgentCallLogRepository = Depends(get_call_log_repository),
 ):
-    result = await agent_service.chat(
-        user_id=current_user.user_id,
-        message=body.message,
-        session_id=body.session_id,
-    )
-    return AgentChatResponse(**result)
+    started = time.perf_counter()
+    success = True
+    result = None
+    try:
+        result = await agent_service.chat(
+            user_id=current_user.user_id,
+            message=body.message,
+            session_id=body.session_id,
+        )
+        return AgentChatResponse(**result)
+    except Exception:
+        success = False
+        raise
+    finally:
+        record_agent_call(
+            call_log_repository,
+            user_id=current_user.user_id,
+            endpoint="agent_chat",
+            action=(result or {}).get("agent_action"),
+            used_tools=(result or {}).get("used_tools", []),
+            success=success,
+            latency_ms=int((time.perf_counter() - started) * 1000),
+        )
 
 
 @agent_router.get("/session/{session_id}", response_model=ChatSessionResponse)
@@ -114,7 +139,10 @@ def get_my_agent_profile(
 async def chat_with_rag(
     request: ChatRequest,
     current_user: User = Depends(get_current_user),
+    call_log_repository: AgentCallLogRepository = Depends(get_call_log_repository),
 ):
+    started = time.perf_counter()
+    success = True
     try:
         top_k = 5
         collection_name = None
@@ -132,7 +160,16 @@ async def chat_with_rag(
             top_k=top_k,
         )
     except Exception as e:
+        success = False
         raise HTTPException(status_code=500, detail=f"채팅 실패: {str(e)}")
+    finally:
+        record_agent_call(
+            call_log_repository,
+            user_id=current_user.user_id,
+            endpoint="chat_rag",
+            success=success,
+            latency_ms=int((time.perf_counter() - started) * 1000),
+        )
 
 
 @legacy_chat_router.get("/status", response_model=ChatStatusResponse)
